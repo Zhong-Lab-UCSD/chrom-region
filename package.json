@@ -1,0 +1,30 @@
+{
+  "name": "@givengine/chrom-region",
+  "version": "0.3.0",
+  "description": "Chromosomal region class used in GIVE, supporting some basic region operations",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Zhong-Lab-UCSD/chrom-region.git"
+  },
+  "keywords": [
+    "region",
+    "genomics",
+    "chromosome"
+  ],
+  "author": "Xiaoyi Cao",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Zhong-Lab-UCSD/chrom-region/issues"
+  },
+  "homepage": "https://github.com/Zhong-Lab-UCSD/chrom-region#readme",
+  "dependencies": {
+    "@log4js-node/log4js-api": "^1.0.2"
+  },
+  "optionalDependencies": {
+    "@givengine/ref-object": "^0.3.0"
+  }
+}
