@@ -24,9 +24,6 @@
   "dependencies": {
     "@log4js-node/log4js-api": "^1.0.2"
   },
-  "optionalDependencies": {
-    "@givengine/ref-object": "^0.3.0"
-  },
   "devDependencies": {
     "@babel/core": "^7.1.2",
     "@babel/preset-env": "^7.1.0",
