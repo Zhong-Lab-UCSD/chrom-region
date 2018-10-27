@@ -200,8 +200,8 @@ properties to `this`
 | regionObject | <code>Object</code> | The object to be converted from |
 | regionObject.chr | <code>string</code> | The chromosome name |
 | regionObject.start | <code>number</code> | The starting coordinate |
-| regionObject.end | <code>number</code> | The starting coordinate |
-| [regionObject.strand] | <code>boolean</code> | The starting coordinate |
+| regionObject.end | <code>number</code> | The ending coordinate |
+| [regionObject.strand] | <code>boolean</code> | The strand information |
 | [regionObject.regionname] | <code>string</code> | The name of the region, will    take precedence over `regionObject.name` |
 | [regionObject.name] | <code>string</code> | The name of the region |
 

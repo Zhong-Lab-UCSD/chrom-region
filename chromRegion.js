@@ -281,8 +281,8 @@ class ChromRegion {
    * @param {Object} regionObject - The object to be converted from
    * @param {string} regionObject.chr - The chromosome name
    * @param {number} regionObject.start - The starting coordinate
-   * @param {number} regionObject.end - The starting coordinate
-   * @param {boolean} [regionObject.strand] - The starting coordinate
+   * @param {number} regionObject.end - The ending coordinate
+   * @param {boolean} [regionObject.strand] - The strand information
    * @param {string} [regionObject.regionname] - The name of the region, will
    *    take precedence over `regionObject.name`
    * @param {string} [regionObject.name] - The name of the region
