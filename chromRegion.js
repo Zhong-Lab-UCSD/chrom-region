@@ -87,36 +87,36 @@ class ChromRegion {
           'ChromRegion start and/or end number invalid!')
       }
       this.clipRegion(chromInfo)
-      if (typeof mainParams === 'object') {
-        for (let key in mainParams) {
-          if (!this.hasOwnProperty(key) && mainParams.hasOwnProperty(key)) {
-            try {
-              this[key] = mainParams[key]
-            } catch (e) {
-              logger.warn(e)
-            }
-          }
-        }
-      }
-      if (typeof additionalParams === 'object') {
-        for (let key in additionalParams) {
-          if (!this.hasOwnProperty(key) &&
-            additionalParams.hasOwnProperty(key)
-          ) {
-            try {
-              this[key] = additionalParams[key]
-            } catch (e) {
-              logger.warn(e)
-            }
-          }
-        }
-      }
     } catch (e) {
       logger.warn(e)
       logger.warn('When creating chromosomal regions with: ')
       logger.warn(mainParams)
       throw (e)
     }
+  }
+
+  /**
+   * Merge the properties of a parameter object into `this`. If `this` already
+   * has a property with the same name (or cannot be assigned for any reason),
+   * it will be ignored.
+   *
+   * @param {Object} paramObject - The parameter object
+   * @returns {ChromRegion} Returns `this`
+   * @protected
+   */
+  _mergeParameters (paramObject) {
+    if (typeof additionalParams === 'object') {
+      for (let key in paramObject) {
+        if (!this.hasOwnProperty(key) && paramObject.hasOwnProperty(key)) {
+          try {
+            this[key] = paramObject[key]
+          } catch (e) {
+            logger.warn(e)
+          }
+        }
+      }
+    }
+    return this
   }
 
   /**
@@ -247,9 +247,12 @@ class ChromRegion {
    * @param {boolean} [zeroBased] - Whether the string is zero-based
    * @param {ChromInfoCollection} [chromInfo] - The collection of chromosomal
    *    information (used to clip `this`).
+   * @param {Object} [additionalParams] - Additional parameters to be added to
+   *    `this`.
    * @returns {ChromRegion} `this`
+   * @protected
    */
-  _regionFromString (regionString, zeroBased, chromInfo) {
+  _regionFromString (regionString, zeroBased, chromInfo, additionalParams) {
     if (chromInfo &&
       chromInfo[regionString.toLowerCase()]
     ) {
@@ -271,6 +274,7 @@ class ChromRegion {
       this.strand = (elements.length < 4
         ? this._strand : !(elements[3] === 'NEGSTR'))
     }
+    this._mergeParameters(additionalParams)
     return this
   }
 
@@ -286,14 +290,19 @@ class ChromRegion {
    * @param {string} [regionObject.regionname] - The name of the region, will
    *    take precedence over `regionObject.name`
    * @param {string} [regionObject.name] - The name of the region
+   * @param {Object} [additionalParams] - Additional parameters to be added to
+   *    `this`.
    * @returns {ChromRegion} `this`
+   * @protected
    */
-  _regionFromObject (regionObject) {
+  _regionFromObject (regionObject, additionalParams) {
     this.chr = regionObject.chr
     this._start = parseInt(regionObject.start)
     this._end = parseInt(regionObject.end)
     this.strand = regionObject.strand
     this.name = regionObject.regionname || regionObject.name || ''
+    this._mergeParameters(regionObject)
+    this._mergeParameters(additionalParams)
     return this
   }
 
@@ -304,6 +313,7 @@ class ChromRegion {
    *
    * @param {string} bedString - The BED string to be converted from
    * @returns {ChromRegion} `this`
+   * @protected
    */
   _regionFromBed (bedString) {
     // notice that this only handle chr, start, end, name, strand in BED 4+
@@ -779,6 +789,7 @@ class ChromRegion {
    * @param {number} prefixLength - Prefix length if shortening happens
    * @param {number} suffixLength - Suffix length if shortening happens
    * @returns {string}
+   * @protected
    */
   static _shortenString (str, limit, prefixLength, suffixLength) {
     prefixLength = prefixLength || 0

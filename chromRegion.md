@@ -28,9 +28,10 @@ limitations under the License.
             * [.end](#user-content-module_ChromRegion--ChromRegion+end) : <code>number</code>
             * [.strand](#user-content-module_ChromRegion--ChromRegion+strand) : <code>boolean</code> \| <code>null</code>
             * [.shortName](#user-content-module_ChromRegion--ChromRegion+shortName) : <code>string</code>
+            * [._mergeParameters(paramObject)](#user-content-module_ChromRegion--ChromRegion+_mergeParameters) ⇒ <code>ChromRegion</code>
             * [.clipRegion([chromInfo], [minLength])](#user-content-module_ChromRegion--ChromRegion+clipRegion) ⇒ <code>ChromRegion</code>
-            * [._regionFromString(regionString, [zeroBased], [chromInfo])](#user-content-module_ChromRegion--ChromRegion+_regionFromString) ⇒ <code>ChromRegion</code>
-            * [._regionFromObject(regionObject)](#user-content-module_ChromRegion--ChromRegion+_regionFromObject) ⇒ <code>ChromRegion</code>
+            * [._regionFromString(regionString, [zeroBased], [chromInfo], [additionalParams])](#user-content-module_ChromRegion--ChromRegion+_regionFromString) ⇒ <code>ChromRegion</code>
+            * [._regionFromObject(regionObject, [additionalParams])](#user-content-module_ChromRegion--ChromRegion+_regionFromObject) ⇒ <code>ChromRegion</code>
             * [._regionFromBed(bedString)](#user-content-module_ChromRegion--ChromRegion+_regionFromBed) ⇒ <code>ChromRegion</code>
             * [.regionToString([includeStrand])](#user-content-module_ChromRegion--ChromRegion+regionToString) ⇒ <code>string</code>
             * [.regionToBed([includeStrand])](#user-content-module_ChromRegion--ChromRegion+regionToBed) ⇒ <code>string</code>
@@ -145,6 +146,21 @@ For example, suppose all values are at their default, then:
 
 **Kind**: instance property of [<code>ChromRegion</code>](#user-content-exp_module_ChromRegion--ChromRegion)  
 **Read only**: true  
+<a name="module_ChromRegion--ChromRegion+_mergeParameters"></a>
+
+#### chromRegion.\_mergeParameters(paramObject) ⇒ <code>ChromRegion</code>
+Merge the properties of a parameter object into `this`. If `this` already
+has a property with the same name (or cannot be assigned for any reason),
+it will be ignored.
+
+**Kind**: instance method of [<code>ChromRegion</code>](#user-content-exp_module_ChromRegion--ChromRegion)  
+**Returns**: <code>ChromRegion</code> - Returns `this`  
+**Access**: protected  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| paramObject | <code>Object</code> | The parameter object |
+
 <a name="module_ChromRegion--ChromRegion+clipRegion"></a>
 
 #### chromRegion.clipRegion([chromInfo], [minLength]) ⇒ <code>ChromRegion</code>
@@ -174,26 +190,29 @@ accordingly to try to match the minimum chromosomal length.
 
 <a name="module_ChromRegion--ChromRegion+_regionFromString"></a>
 
-#### chromRegion.\_regionFromString(regionString, [zeroBased], [chromInfo]) ⇒ <code>ChromRegion</code>
+#### chromRegion.\_regionFromString(regionString, [zeroBased], [chromInfo], [additionalParams]) ⇒ <code>ChromRegion</code>
 Convert the region string `chrX:XXXX-XXXX` to `this`
 
 **Kind**: instance method of [<code>ChromRegion</code>](#user-content-exp_module_ChromRegion--ChromRegion)  
 **Returns**: <code>ChromRegion</code> - `this`  
+**Access**: protected  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | regionString | <code>string</code> | The string to be converted from |
 | [zeroBased] | <code>boolean</code> | Whether the string is zero-based |
 | [chromInfo] | <code>ChromInfoCollection</code> | The collection of chromosomal    information (used to clip `this`). |
+| [additionalParams] | <code>Object</code> | Additional parameters to be added to    `this`. |
 
 <a name="module_ChromRegion--ChromRegion+_regionFromObject"></a>
 
-#### chromRegion.\_regionFromObject(regionObject) ⇒ <code>ChromRegion</code>
+#### chromRegion.\_regionFromObject(regionObject, [additionalParams]) ⇒ <code>ChromRegion</code>
 Convert an `object` with `chr`, `start`, `end` and (optional) `strand`
 properties to `this`
 
 **Kind**: instance method of [<code>ChromRegion</code>](#user-content-exp_module_ChromRegion--ChromRegion)  
 **Returns**: <code>ChromRegion</code> - `this`  
+**Access**: protected  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -204,6 +223,7 @@ properties to `this`
 | [regionObject.strand] | <code>boolean</code> | The strand information |
 | [regionObject.regionname] | <code>string</code> | The name of the region, will    take precedence over `regionObject.name` |
 | [regionObject.name] | <code>string</code> | The name of the region |
+| [additionalParams] | <code>Object</code> | Additional parameters to be added to    `this`. |
 
 <a name="module_ChromRegion--ChromRegion+_regionFromBed"></a>
 
@@ -214,6 +234,7 @@ the 1st-3rd fields (BED3), the 4th field (if exists), and the 6th field
 
 **Kind**: instance method of [<code>ChromRegion</code>](#user-content-exp_module_ChromRegion--ChromRegion)  
 **Returns**: <code>ChromRegion</code> - `this`  
+**Access**: protected  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -458,6 +479,7 @@ Determine whether two regions are equal (`chr`, `start`, `end` are equal)
 Helper function to get a shortened string if it exceeds a given limit.
 
 **Kind**: static method of [<code>ChromRegion</code>](#user-content-exp_module_ChromRegion--ChromRegion)  
+**Access**: protected  
 
 | Param | Type | Description |
 | --- | --- | --- |
