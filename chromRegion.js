@@ -75,9 +75,10 @@ class ChromRegion {
   constructor (mainParams, chromInfo, additionalParams, zeroBased) {
     try {
       if (typeof mainParams === 'string') {
-        this._regionFromString(mainParams, zeroBased, chromInfo)
+        this._regionFromString(
+          mainParams, chromInfo, additionalParams, zeroBased)
       } else if (typeof mainParams === 'object') {
-        this._regionFromObject(mainParams)
+        this._regionFromObject(mainParams, additionalParams)
       } else {
         throw new Error(
           'Must create ChromRegion with object or string!')
@@ -244,15 +245,15 @@ class ChromRegion {
    * Convert the region string `chrX:XXXX-XXXX` to `this`
    *
    * @param {string} regionString - The string to be converted from
-   * @param {boolean} [zeroBased] - Whether the string is zero-based
    * @param {ChromInfoCollection} [chromInfo] - The collection of chromosomal
    *    information (used to clip `this`).
    * @param {Object} [additionalParams] - Additional parameters to be added to
    *    `this`.
+   * @param {boolean} [zeroBased] - Whether the string is zero-based
    * @returns {ChromRegion} `this`
    * @protected
    */
-  _regionFromString (regionString, zeroBased, chromInfo, additionalParams) {
+  _regionFromString (regionString, chromInfo, additionalParams, zeroBased) {
     if (chromInfo &&
       chromInfo[regionString.toLowerCase()]
     ) {

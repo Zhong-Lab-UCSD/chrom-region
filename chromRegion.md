@@ -30,7 +30,7 @@ limitations under the License.
             * [.shortName](#user-content-module_ChromRegion--ChromRegion+shortName) : <code>string</code>
             * [._mergeParameters(paramObject)](#user-content-module_ChromRegion--ChromRegion+_mergeParameters) ⇒ <code>ChromRegion</code>
             * [.clipRegion([chromInfo], [minLength])](#user-content-module_ChromRegion--ChromRegion+clipRegion) ⇒ <code>ChromRegion</code>
-            * [._regionFromString(regionString, [zeroBased], [chromInfo], [additionalParams])](#user-content-module_ChromRegion--ChromRegion+_regionFromString) ⇒ <code>ChromRegion</code>
+            * [._regionFromString(regionString, [chromInfo], [additionalParams], [zeroBased])](#user-content-module_ChromRegion--ChromRegion+_regionFromString) ⇒ <code>ChromRegion</code>
             * [._regionFromObject(regionObject, [additionalParams])](#user-content-module_ChromRegion--ChromRegion+_regionFromObject) ⇒ <code>ChromRegion</code>
             * [._regionFromBed(bedString)](#user-content-module_ChromRegion--ChromRegion+_regionFromBed) ⇒ <code>ChromRegion</code>
             * [.regionToString([includeStrand])](#user-content-module_ChromRegion--ChromRegion+regionToString) ⇒ <code>string</code>
@@ -190,7 +190,7 @@ accordingly to try to match the minimum chromosomal length.
 
 <a name="module_ChromRegion--ChromRegion+_regionFromString"></a>
 
-#### chromRegion.\_regionFromString(regionString, [zeroBased], [chromInfo], [additionalParams]) ⇒ <code>ChromRegion</code>
+#### chromRegion.\_regionFromString(regionString, [chromInfo], [additionalParams], [zeroBased]) ⇒ <code>ChromRegion</code>
 Convert the region string `chrX:XXXX-XXXX` to `this`
 
 **Kind**: instance method of [<code>ChromRegion</code>](#user-content-exp_module_ChromRegion--ChromRegion)  
@@ -200,9 +200,9 @@ Convert the region string `chrX:XXXX-XXXX` to `this`
 | Param | Type | Description |
 | --- | --- | --- |
 | regionString | <code>string</code> | The string to be converted from |
-| [zeroBased] | <code>boolean</code> | Whether the string is zero-based |
 | [chromInfo] | <code>ChromInfoCollection</code> | The collection of chromosomal    information (used to clip `this`). |
 | [additionalParams] | <code>Object</code> | Additional parameters to be added to    `this`. |
+| [zeroBased] | <code>boolean</code> | Whether the string is zero-based |
 
 <a name="module_ChromRegion--ChromRegion+_regionFromObject"></a>
 
