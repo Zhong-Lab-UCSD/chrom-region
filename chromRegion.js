@@ -739,18 +739,58 @@ class ChromRegion {
   }
 
   /**
+   * Split chromosome name into three parts:
+   * 1.  `Chr` (if exists)
+   * 2.  Chromosome number (if exists), will be converted to `number`
+   * 3.  The rest of the name
+   *
+   * @param {string} name Chromosome name to be splited
+   * @returns {Array<string|number>}
+   */
+  static _splitChromNamePart (name) {
+    let arr = name.toLowerCase().match(/^((?:chr)?)(\d*)(.*)/)
+    arr.shift()
+    arr[1] = arr[1] ? parseInt(arr[1]) : ''
+    return arr
+  }
+
+  /**
+   * Compare chromosome names in a more natural way, so that
+   * `chr10` should be larger than `chr2` (not the lexicographical order)
+   * @param {string} name1 Name of the first chromosome name
+   * @param {string} name2 Name of the second chromosome name
+   */
+  static _compareChromNames (name1, name2) {
+    // note: `chr2` should be smaller than `chr10`
+    let nameArr1 = this._splitChromNamePart(name1)
+    let nameArr2 = this._splitChromNamePart(name2)
+    let result = 0
+    nameArr1.some((entry, index) => {
+      if (entry !== nameArr2[index]) {
+        result = (entry === ''
+          ? 1 : (nameArr2[index] === ''
+            ? -1 : (entry < nameArr2[index] ? -1 : 1)))
+        return true
+      }
+      return false
+    })
+    return result
+  }
+
+  /**
    * Compare two `ChromRegion`s
    *
    * Whether `region1` is considered "smaller than" (to the left-hand side of),
    * equal to, or "larger than" (to the right-hand side of) `region2` is
    * determined by the following criteria:
-   * *  If `region1.chr` has a lower lexicographical order than
-   *    `region2.chr`, it is considered smaller, otherwise;
+   * *  If `region1.chr` has a lower 'natural' order
+   *    (see `this._compareChromNames`) than `region2.chr`, it is considered
+   *    smaller, otherwise:
    * *  If `region1.chr === region2.chr`, but `region1.start` is smaller than
-   *    `region2.start`, it is considered smaller, otherwise;
+   *    `region2.start`, it is considered smaller, otherwise:
    * *  If `region1.chr === region2.chr` and `region1.start === region2.start`,
    *    but `region1.end` is smaller than `region2.end`, it is considered
-   *    smaller, otherwise;
+   *    smaller, otherwise:
    * *  If `chr`, `start` and `end` of `region1` and `region2` are equal,
    *    `region1` is considered equal to `region2`, otherwise `region1` is
    *    considered larger than `region2`.
@@ -763,12 +803,11 @@ class ChromRegion {
    *    `region2`
    */
   static compare (region1, region2) {
-    return ((region1.chr === region2.chr)
-      ? ((region1.start === region2.start)
+    return (this || ChromRegion)._compareChromNames(region1.chr, region2.chr) ||
+      ((region1.start === region2.start)
         ? ((region1.end === region2.end)
           ? 0 : ((region1.end > region2.end) ? 1 : -1))
         : ((region1.start > region2.start) ? 1 : -1))
-      : ((region1.chr > region2.chr) ? 1 : -1)) // chr not the same
   }
 
   /**
