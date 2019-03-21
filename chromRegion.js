@@ -106,7 +106,7 @@ class ChromRegion {
    * @protected
    */
   _mergeParameters (paramObject) {
-    if (typeof additionalParams === 'object') {
+    if (typeof paramObject === 'object') {
       for (let key in paramObject) {
         if (!this.hasOwnProperty(key) && paramObject.hasOwnProperty(key)) {
           try {
@@ -488,10 +488,15 @@ class ChromRegion {
    * @param {ChromRegion} region - The region to be assimilated.
    * @param {boolean} [strandSpecific] - Whether the assimilation is
    *    strand-specific.
+   * @param {boolean} [ignoreOverlap] - If `true`, the region to be assimilated
+   *    does not need to be overlapping with `this` (it still needs to be at
+   *    the same chromosome, though).
    * @returns {ChromRegion|null}
    */
-  assimilate (region, strandSpecific) {
-    if (!this.overlaps(region, strandSpecific)) {
+  assimilate (region, strandSpecific, ignoreOverlap) {
+    if ((!ignoreOverlap && !this.overlaps(region, strandSpecific)) ||
+      this.chr !== region.chr
+    ) {
       return null
     }
     this._start = parseInt(Math.min(this._start, region._start))
