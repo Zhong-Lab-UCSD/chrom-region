@@ -36,11 +36,20 @@ const logger = log4js.getLogger('givengine')
 /**
  * An object that can be used to initialize `ChromRegion`
  * @typedef {Object} ChromRegionLikeObj
- * @property {string} chr - The name of the chromosome
- * @property {number} start - The start of the chromosomal region
- * @property {number} end - The end of the chromosomal region
+ * @property {string} chr The name of the chromosome
+ * @property {number} start The start of the chromosomal region
+ * @property {number} end The end of the chromosomal region
  * @property {boolean|null|string} [strand] - The strand of the region, `null`
  *    for unknown or not applicable, `string`s like `'-'` are also acceptable.
+ * @property {string} [regionname] The name of the region, will
+ *    take precedence over `name`
+ * @property {string} [name] The name of the region
+ */
+
+/**
+ * An object that can be used to initialize `ChromRegion`
+ * @typedef {Object} ObjectWithBed
+ * @property {string} bedString - The BED format string
  */
 
 /**
@@ -71,21 +80,22 @@ const logger = log4js.getLogger('givengine')
 class ChromRegion {
   /**
    * @constructor
-   * @param {string|ChromRegion|ChromRegionLikeObj} mainParams
-   *    Main parameters used in the `ChromRegion`.
-   *
-   *    Either use a `string` like `chr1:12345-56789` or an `object` with `chr`,
-   *    `start`, `end` (required), and `strand` (optional) or other essential
-   *    properties.
-   *
-   *    A `ChromRegion` instance can also be used, in which case the behavior
-   *    will be similar to a copy constructor.
-   * @param {ChromInfoCollection} [chromInfo] - The collection of chromosomal
+   * @param {string|ChromRegion|ChromRegionLikeObj|ObjectWithBed} mainParams
+   * Main parameters used in the `ChromRegion`. Four types of input is
+   * supported:
+   * *   A `string` like `chr1:12345-56789`, strands can be specified like
+   *     `chr1:12345-56789(-)`;
+   * *   An `object` with `bedString` (`BED3+` format string) as one property;
+   * *   An `object` with `chr`, `start`, `end` (required),
+   *     and `strand` (optional) or other essential properties;
+   * *   A `ChromRegion` instance. In this case the behavior will be similar to
+   *     a copy constructor (all additional properties will be copied).
+   * @param {ChromInfoCollection} [chromInfo] The collection of chromosomal
    *    information for the reference genome of the region, used for clipping
    *    the region, use falsey values to omit.
-   * @param {Object} [additionalParams] - Additional parameters to be added to
+   * @param {Object} [additionalParams] Additional parameters to be added to
    *    `this`.
-   * @param {boolean} [zeroBased] - Whether the given chrom region's coordinate
+   * @param {boolean} [zeroBased] Whether the given chrom region's coordinate
    *    is zero based. __Note:__ Internal storage of the chrom region is always
    *    zero-based.
    */
@@ -306,15 +316,9 @@ class ChromRegion {
    * Convert an `object` with `chr`, `start`, `end` and (optional) `strand`
    * properties to `this`
    *
-   * @param {Object} regionObject - The object to be converted from
-   * @param {string} regionObject.chr - The chromosome name
-   * @param {number} regionObject.start - The starting coordinate
-   * @param {number} regionObject.end - The ending coordinate
-   * @param {boolean} [regionObject.strand] - The strand information
-   * @param {string} [regionObject.regionname] - The name of the region, will
-   *    take precedence over `regionObject.name`
-   * @param {string} [regionObject.name] - The name of the region
-   * @param {Object} [additionalParams] - Additional parameters to be added to
+   * @param {ChromRegionLikeObj|ObjectWithBed|ChromRegion} regionObject
+   *    The object to be converted from
+   * @param {Object} [additionalParams] Additional parameters to be added to
    *    `this`.
    * @returns {ChromRegion} `this`
    * @protected
