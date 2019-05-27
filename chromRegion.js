@@ -228,7 +228,10 @@ class ChromRegion {
 
   /**
    * Starting coordinate. Setting to invalid values will cause an exception to
-   * be thrown
+   * be thrown. Note that this value should be the first 0-based coordinate
+   * __within__ the region (__inclusive__). It will be one smaller than the
+   * starting value in the `'chrX:XXXXX-XXXXX'` annotation as the annotation is
+   * 1-based inclusive.
    * @type {number}
    */
   get start () {
@@ -237,7 +240,10 @@ class ChromRegion {
 
   /**
    * Ending coordinate. Setting to invalid values will cause an exception to
-   * be thrown
+   * be thrown. Note that this value should be the first 0-based coordinate
+   * __after__ the region (__exclusive__). This will be the same end value in
+   * the `'chrX:XXXXX-XXXXX'` annotation as the annotation is 1-based inclusive.
+   * If `this.end === this.start`, the `length` of the region is 0.
    * @type {number}
    */
   get end () {
@@ -283,7 +289,7 @@ class ChromRegion {
       var cleanedChrString = regionString.replace(/,/g, '')
         .replace(/\(\s*-\s*\)/g, ' NEGSTR')
         .replace(/\(\s*\+\s*\)/g, ' POSSTR')
-      var elements = cleanedChrString.split(/[:\s-]+/)
+      var elements = cleanedChrString.split(/\s*(?::|-|\s)\s*/)
 
       this.chr = elements[0]
       this._start = parseInt(elements[1]) -
@@ -314,11 +320,16 @@ class ChromRegion {
    * @protected
    */
   _regionFromObject (regionObject, additionalParams) {
-    this.chr = regionObject.chr
-    this._start = parseInt(regionObject.start)
-    this._end = parseInt(regionObject.end)
-    this.strand = regionObject.strand
-    this.name = regionObject.regionname || regionObject.name || ''
+    if (regionObject && typeof regionObject.bedString === 'string') {
+      this._regionFromBed(regionObject.bedString)
+      delete regionObject.bedString
+    } else {
+      this.chr = regionObject.chr
+      this._start = parseInt(regionObject.start)
+      this._end = parseInt(regionObject.end)
+      this.strand = regionObject.strand
+      this.name = regionObject.regionname || regionObject.name || ''
+    }
     this._mergeParameters(regionObject)
     this._mergeParameters(additionalParams)
     return this
@@ -491,8 +502,8 @@ class ChromRegion {
     if (this._start >= region._end || this._end <= region._start) {
       return 0
     }
-    return parseInt(Math.min(this._end, region._end)) -
-      parseInt(Math.max(this._start, region._start))
+    return Math.round(Math.min(this._end, region._end)) -
+      Math.round(Math.max(this._start, region._start))
   }
 
   /**
@@ -512,12 +523,14 @@ class ChromRegion {
    */
   assimilate (region, strandSpecific, ignoreOverlap) {
     if ((!ignoreOverlap && !this.overlaps(region, strandSpecific)) ||
-      this.chr !== region.chr
+      this.chr !== region.chr || (strandSpecific &&
+        (this._strand !== null && region._strand !== null) &&
+        this._strand !== region._strand)
     ) {
       return null
     }
-    this._start = parseInt(Math.min(this._start, region._start))
-    this._end = parseInt(Math.max(this._end, region._end))
+    this._start = Math.round(Math.min(this._start, region._start))
+    this._end = Math.round(Math.max(this._end, region._end))
     return this
   }
 
@@ -565,8 +578,8 @@ class ChromRegion {
     if (!this.overlaps(region, strandSpecific)) {
       return null
     }
-    this._start = parseInt(Math.max(this._start, region._start))
-    this._end = parseInt(Math.min(this._end, region._end))
+    this._start = Math.round(Math.max(this._start, region._start))
+    this._end = Math.round(Math.min(this._end, region._end))
     return this
   }
 
@@ -579,15 +592,24 @@ class ChromRegion {
    *    absolute bp value or a proportion (of `this.length`).
    * @param {ChromInfoCollection} [chromInfo] - The collection of chromosomal
    *    information for clipping purposes.
+   * @param {boolean} [relativeToStrand] - Whether the direction of `distance`
+   *    is relative to `this.strand`. Will only be honored if `this.strand`
+   *    is not `null`.
    * @returns {ChromRegion}
    */
-  move (distance, isProportion, chromInfo) {
+  move (distance, isProportion, chromInfo, relativeToStrand) {
     // isProportion means whether move by proportion
     // may clip distance to what we have
     if (isProportion) {
       distance *= this.length
     }
-    distance = parseInt(distance + 0.5)
+    distance = Math.round(distance)
+    if (!Number.isInteger(distance)) {
+      throw new Error('Distance should be a valid number!')
+    }
+    if (relativeToStrand && this.strand === false) {
+      distance = -distance
+    }
     if (distance + this._start < this.constructor.CHROM_BASE) {
       distance = this.constructor.CHROM_BASE - this._start
     } else if (chromInfo && chromInfo[this.chr] &&
@@ -618,10 +640,14 @@ class ChromRegion {
    *    absolute bp value or a proportion (of `this.length`).
    * @param {ChromInfoCollection} [chromInfo] - The collection of chromosomal
    *    information for clipping purposes.
+   * @param {boolean} [relativeToStrand] - Whether the direction of `distance`
+   *    is relative to `this.strand`. Will only be honored if `this.strand`
+   *    is not `null`.
    * @returns {ChromRegion}
    */
-  getShift (distance, isProportion, chromInfo) {
-    return this.clone().move(distance, isProportion, chromInfo)
+  getShift (distance, isProportion, chromInfo, relativeToStrand) {
+    return this.clone()
+      .move(distance, isProportion, chromInfo, relativeToStrand)
   }
 
   /**
@@ -654,16 +680,22 @@ class ChromRegion {
    */
   extend (sizeDiff, center, isProportion, chromInfo, minimumSize) {
     // isProportion means whether extend by proportion
-    minimumSize = minimumSize || 1
+    minimumSize = (typeof minimumSize === 'number' &&
+      !Number.isNaN(minimumSize) && minimumSize >= 0)
+      ? minimumSize : 1
     if (!sizeDiff) {
       return this
     }
     if (isProportion) {
       sizeDiff *= this.length
     }
-    sizeDiff = parseInt(sizeDiff + 0.5)
+    sizeDiff = Math.round(sizeDiff)
+    if (!Number.isInteger(sizeDiff)) {
+      throw new Error('Size difference should be a valid number!')
+    }
     var newsize = this.length + sizeDiff
-    center = center || (this._start + this._end) / 2
+    center = (typeof center === 'number' && !Number.isNaN(center))
+      ? center : (this._start + this._end) / 2
     if (center < this._start) {
       center = this._start
     } else if (center > this._end) {
@@ -679,7 +711,7 @@ class ChromRegion {
     if (center > this._start) {
       // extend left
       this._start = this._start -
-        parseInt(sizeDiff * (center - this._start) / this.length + 0.5)
+        Math.round(sizeDiff * (center - this._start) / this.length)
       if (this._start < this.constructor.CHROM_BASE) {
         this._start = this.constructor.CHROM_BASE
       }
@@ -729,9 +761,16 @@ class ChromRegion {
     // this is to clip single coordinate
     if (coor.coor < this.CHROM_BASE) {
       coor.coor = this.CHROM_BASE
-    } else if (chromInfo && chromInfo[coor.chr] &&
-      chromInfo[coor.chr].chrRegion._end < coor.coor) {
-      coor.coor = chromInfo[coor.chr].chrRegion._end
+    }
+    if (chromInfo && chromInfo[coor.chr] &&
+      chromInfo[coor.chr].chrRegion._end - 1 < coor.coor
+    ) {
+      coor.coor = chromInfo[coor.chr].chrRegion._end - 1
+    }
+    if (chromInfo && chromInfo[coor.chr] &&
+      chromInfo[coor.chr].chrRegion._start > coor.coor
+    ) {
+      coor.coor = chromInfo[coor.chr].chrRegion._start
     }
     return coor
   }
