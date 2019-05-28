@@ -490,6 +490,15 @@ describe('ChromRegion tests: operations.', function () {
     expect(ChromRegion.isEqual(chrRegion1, chrRegion2)).to.be.false()
     expect(ChromRegion.compare(chrRegion1, chrRegion2)).to.be.lessThan(0)
     expect(ChromRegion.compare(chrRegion2, chrRegion1)).to.be.greaterThan(0)
+    let chrRegion3 = new ChromRegion('chr2:12345-67890(-)')
+    let chrRegion4 = new ChromRegion('chr2:12345-67890')
+    let chrRegion5 = new ChromRegion('chr2:12345-67890(+)')
+    expect(ChromRegion.isEqual(chrRegion1, chrRegion3)).to.be.false()
+    expect(ChromRegion.compare(chrRegion1, chrRegion3)).to.be.equal(0)
+    expect(ChromRegion.isEqual(chrRegion1, chrRegion4)).to.be.false()
+    expect(ChromRegion.compare(chrRegion1, chrRegion4)).to.be.equal(0)
+    expect(ChromRegion.isEqual(chrRegion1, chrRegion5)).to.be.true()
+    expect(ChromRegion.compare(chrRegion1, chrRegion5)).to.be.equal(0)
   })
 
   it('Move and getShift.', function () {

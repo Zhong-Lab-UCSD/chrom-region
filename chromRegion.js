@@ -855,6 +855,8 @@ class ChromRegion {
    *    `region1` is considered equal to `region2`, otherwise `region1` is
    *    considered larger than `region2`.
    *
+   * __NOTE__: `strand` is not taken into consideration in this case.
+   *
    * @static
    * @param {ChromRegion} region1
    * @param {ChromRegion} region2
@@ -871,17 +873,21 @@ class ChromRegion {
   }
 
   /**
-   * Determine whether two regions are equal (`chr`, `start`, `end` are equal)
+   * Determine whether two regions are equal (`chr`, `start`, `end` and `strand`
+   * are equal), `null` and `undefined` can be passed as parameters, in which
+   * case the function will return `true` if both regions are falsey.
    *
    * @static
-   * @param {ChromRegion} region1
-   * @param {ChromRegion} region2
+   * @param {ChromRegion} [region1]
+   * @param {ChromRegion} [region2]
    * @returns {boolean}
    */
   static isEqual (region1, region2) {
     return (region1 && region2)
       ? (region1.chr === region2.chr &&
-        region1.start === region2.start && region1.end === region2.end)
+        region1.start === region2.start &&
+        region1.end === region2.end &&
+        region1.strand === region2.strand)
       : (!!region1 === !!region2)
   }
 
