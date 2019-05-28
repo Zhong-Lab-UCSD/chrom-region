@@ -480,6 +480,7 @@ describe('ChromRegion tests: operations.', function () {
     expect(chrRegion1.toString()).to.equal(chrRegion2.toString())
     expect(ChromRegion.isEqual(chrRegion1, chrRegion2)).to.be.true()
     expect(ChromRegion.compare(chrRegion1, chrRegion2)).to.equal(0)
+    expect(chrRegion1.equalTo(chrRegion2)).to.be.true()
     chrRegion2.start = 12300
     expect(chrRegion2.toString()).to.equal('chr2:12301-67890 (+)')
     expect(chrRegion1.toString()).to.be.not.equal(chrRegion2.toString())
@@ -499,6 +500,12 @@ describe('ChromRegion tests: operations.', function () {
     expect(ChromRegion.compare(chrRegion1, chrRegion4)).to.be.equal(0)
     expect(ChromRegion.isEqual(chrRegion1, chrRegion5)).to.be.true()
     expect(ChromRegion.compare(chrRegion1, chrRegion5)).to.be.equal(0)
+    expect(ChromRegion.isEqual(chrRegion1, null)).to.be.false()
+    expect(ChromRegion.isEqual(null, chrRegion5)).to.be.false()
+    expect(ChromRegion.isEqual(null, null)).to.be.true()
+    expect(chrRegion1.equalTo(chrRegion3)).to.be.false()
+    expect(chrRegion1.equalTo(chrRegion4)).to.be.false()
+    expect(chrRegion1.equalTo(chrRegion5)).to.be.true()
   })
 
   it('Move and getShift.', function () {

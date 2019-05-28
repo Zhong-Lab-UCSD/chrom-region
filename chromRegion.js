@@ -752,6 +752,19 @@ class ChromRegion {
   }
 
   /**
+   * Whether this region equals to the given region. (Only `chr`, `start`,
+   * `end` and `strand` are compared.)
+   *
+   * Extensions of this class shall define their own `equalTo` function (or
+   * the `static isEqual` function).
+   * @param {ChromRegion} [chrRegion] region to be compared with
+   * @returns {boolean}
+   */
+  equalTo (chrRegion) {
+    return ChromRegion.isEqual(this, chrRegion)
+  }
+
+  /**
    * Helper function to clip a coordinate object (see `this.startCoor` or
    * `this.endCoor`) with a collection of `chromInfo`.
    *
