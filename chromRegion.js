@@ -21,6 +21,7 @@
  * limitations under the License.
  *
  * @module ChromRegion
+ * @exports ChromRegion
  */
 
 const log4js = require('@log4js-node/log4js-api')
@@ -29,8 +30,8 @@ const logger = log4js.getLogger('givengine')
 /**
  * Basic chromosome information.
  * @typedef {Object} ChromInfo
- * @property {ChromRegion} chrRegion - The range of the chromosome
- * @property {ChromRegion} [cent] - The range of the chromosome centromere
+ * @property {ChromRegion} chrRegion The range of the chromosome
+ * @property {ChromRegion} [cent] The range of the chromosome centromere
  */
 
 /**
@@ -39,7 +40,7 @@ const logger = log4js.getLogger('givengine')
  * @property {string} chr The name of the chromosome
  * @property {number} start The start of the chromosomal region
  * @property {number} end The end of the chromosomal region
- * @property {boolean|null|string} [strand] - The strand of the region, `null`
+ * @property {boolean|null|string} [strand] The strand of the region, `null`
  *    for unknown or not applicable, `string`s like `'-'` are also acceptable.
  * @property {string} [regionname] The name of the region, will
  *    take precedence over `name`
@@ -49,7 +50,7 @@ const logger = log4js.getLogger('givengine')
 /**
  * An object that can be used to initialize `ChromRegion`
  * @typedef {Object} ObjectWithBed
- * @property {string} bedString - The BED format string
+ * @property {string} bedString The BED format string
  */
 
 /**
@@ -61,21 +62,13 @@ const logger = log4js.getLogger('givengine')
 /**
  * A coordinate object with chromosome name and single coordinate value.
  * @typedef {Object} CoordinateObj
- * @property {string} chr - The chromosome name
- * @property {number} coor - The coordinate value
+ * @property {string} chr The chromosome name
+ * @property {number} coor The coordinate value
  */
 
 /**
  * Data structure for chromosomal region.
  * @class
- * @alias module:ChromRegion
- * @property {string} chr - Chromosome name
- * @property {number} start - Starting coordinate
- * @property {number} end - Ending coordinate (not included in the region)
- * @property {boolean|null} strand - The strand of the region, `null` for
- *    unknown or not applicable
- * @property {Object|null} data - any general data that needs to be attached
- *    to this chromosomal region
  */
 class ChromRegion {
   /**
@@ -97,7 +90,8 @@ class ChromRegion {
    *    `this`.
    * @param {boolean} [zeroBased] Whether the given chrom region's coordinate
    *    is zero based. __Note:__ Internal storage of the chrom region is always
-   *    zero-based.
+   *    0-based by default. To change this, override
+   *    {@link ChromRegion.CHROM_BASE} to `1`.
    */
   constructor (mainParams, chromInfo, additionalParams, zeroBased) {
     try {
@@ -128,7 +122,7 @@ class ChromRegion {
    * has a property with the same name (or cannot be assigned for any reason),
    * it will be ignored.
    *
-   * @param {Object} paramObject - The parameter object
+   * @param {Object} paramObject The parameter object
    * @returns {ChromRegion} Returns `this`
    * @protected
    */
@@ -164,9 +158,9 @@ class ChromRegion {
    * region's `length` is less than the minimal length, it will be extended
    * accordingly to try to match the minimum chromosomal length.
    *
-   * @param {ChromInfoCollection} [chromInfo] - The collection of chromosomal
+   * @param {ChromInfoCollection} [chromInfo] The collection of chromosomal
    *    information.
-   * @param {number} [minLength] - the minimum chromosomal length
+   * @param {number} [minLength] the minimum chromosomal length
    * @returns {ChromRegion} `this`
    */
   clipRegion (chromInfo, minLength) {
@@ -177,6 +171,11 @@ class ChromRegion {
       if (chromInfo[this.chr.toLowerCase()]) {
         this.chr = chromInfo[this.chr.toLowerCase()].chrRegion.chr
         if (chromInfo[this.chr].chrRegion._end < this._end) {
+          /**
+           * Ending coordinate (not included in the region, 0-based exclusive)
+           * @type {number}
+           * @memberof ChromRegion#
+           */
           this._end = chromInfo[this.chr].chrRegion._end
         }
       } else if (!chromInfo[this.chr]) {
@@ -189,6 +188,11 @@ class ChromRegion {
       if (this._start > this._end - minLength) {
         logger.info('Coordinates out of bounds: ' + this.chr +
           ':' + this._start + '-' + this._end + '.')
+        /**
+         * Starting coordinate. Always 0-based inclusive.
+         * @type {number}
+         * @memberof ChromRegion#
+         */
         this._start = Math.max(
           this.constructor.CHROM_BASE, this._end - minLength)
         if (chromInfo) {
@@ -277,12 +281,12 @@ class ChromRegion {
   /**
    * Convert the region string `chrX:XXXX-XXXX` to `this`
    *
-   * @param {string} regionString - The string to be converted from
-   * @param {ChromInfoCollection} [chromInfo] - The collection of chromosomal
+   * @param {string} regionString The string to be converted from
+   * @param {ChromInfoCollection} [chromInfo] The collection of chromosomal
    *    information (used to clip `this`).
-   * @param {Object} [additionalParams] - Additional parameters to be added to
+   * @param {Object} [additionalParams] Additional parameters to be added to
    *    `this`.
-   * @param {boolean} [zeroBased] - Whether the string is zero-based
+   * @param {boolean} [zeroBased] Whether the string is zero-based
    * @returns {ChromRegion} `this`
    * @protected
    */
@@ -290,21 +294,33 @@ class ChromRegion {
     if (chromInfo &&
       chromInfo[regionString.toLowerCase()]
     ) {
+      /**
+       * Chromosome name
+       * @type {string}
+       * @memberof ChromRegion#
+       */
       this.chr = chromInfo[regionString.toLowerCase()].chrRegion.chr
       this._start =
         chromInfo[regionString.toLowerCase()].chrRegion._start
       this._end = chromInfo[regionString.toLowerCase()].chrRegion._end
       this.strand = null
+      /**
+       * Any general data that needs to be attached to this chromosomal region
+       * @type {Object|null}
+       * @memberof ChromRegion#
+       * @abstract
+       */
     } else {
-      var cleanedChrString = regionString.replace(/,/g, '')
+      let cleanedChrString = regionString.replace(/,/g, '')
         .replace(/\(\s*-\s*\)/g, ' NEGSTR')
         .replace(/\(\s*\+\s*\)/g, ' POSSTR')
-      var elements = cleanedChrString.split(/\s*(?::|-|\s)\s*/)
+      let elements = cleanedChrString.split(/\s*(?::|-|\s)\s*/)
 
       this.chr = elements[0]
       this._start = parseInt(elements[1]) -
-        (zeroBased ? 0 : (1 - this.constructor.CHROM_BASE))
-      this._end = parseInt(elements[2])
+        (zeroBased ? 0 : 1) + this.constructor.CHROM_BASE
+      this._end = parseInt(elements[2]) + 1 -
+        (zeroBased ? 0 : 1) + this.constructor.CHROM_BASE
       this.strand = (elements.length < 4
         ? this._strand : !(elements[3] === 'NEGSTR'))
     }
@@ -332,6 +348,11 @@ class ChromRegion {
       this._start = parseInt(regionObject.start)
       this._end = parseInt(regionObject.end)
       this.strand = regionObject.strand
+      /**
+       * Name of the region
+       * @type {string}
+       * @memberof ChromRegion#
+       */
       this.name = regionObject.regionname || regionObject.name || ''
     }
     this._mergeParameters(regionObject)
@@ -342,9 +363,10 @@ class ChromRegion {
   /**
    * Convert the BED format string `chrX XXXX XXXX` to `this`. Note that only
    * the 1st-3rd fields (BED3), the 4th field (if exists), and the 6th field
-   * (if exists) are used.
+   * (if exists) are used. BED coordinates are always 0-based, inclusive for
+   * `start` and exclusive for `end`.
    *
-   * @param {string} bedString - The BED string to be converted from
+   * @param {string} bedString The BED string to be converted from
    * @returns {ChromRegion} `this`
    * @protected
    */
@@ -353,8 +375,8 @@ class ChromRegion {
     //    format
     var tokens = bedString.split(/ +|\t/)
     this.chr = tokens[0]
-    this._start = parseInt(tokens[1])
-    this._end = parseInt(tokens[2])
+    this._start = parseInt(tokens[1]) + this.constructor.CHROM_BASE
+    this._end = parseInt(tokens[2]) + this.constructor.CHROM_BASE
     this.strand = (tokens.length < 6) ? this._strand : tokens[5]
     this.name = (tokens[3] && tokens[3] !== '.')
       ? tokens[3] : (this.name || '')
@@ -362,10 +384,12 @@ class ChromRegion {
   }
 
   /**
-   * Convert `this` to a human-readable string
+   * Convert `this` to a human-readable string.
    * `<chromosome name>:<start>-<end>(<strand>)`
    *
-   * @param {boolean} [includeStrand=true] - Whether to include strand
+   * __Note:__ Both values will be __1-based inclusive__.
+   *
+   * @param {boolean} [includeStrand=true] Whether to include strand
    *    information at the end. If `this` does not have strand information, this
    *    flag has no effect.
    *
@@ -375,7 +399,8 @@ class ChromRegion {
   regionToString (includeStrand) {
     // default is including strand
     return this.chr + ':' +
-      (this._start + 1 - this.constructor.CHROM_BASE) + '-' + this._end +
+      (this._start + 1 - this.constructor.CHROM_BASE) + '-' +
+      (this._end - this.constructor.CHROM_BASE) +
       ((includeStrand === false || this._strand === null)
         ? '' : (' (' + (this._strand ? '+' : '-') + ')'))
   }
@@ -383,7 +408,7 @@ class ChromRegion {
   /**
    * Convert `this` to a BED4/BED6 string
    *
-   * @param {boolean} [includeStrand=true] - Whether to include strand
+   * @param {boolean} [includeStrand=true] Whether to include strand
    *    information at the end. If `true` (default), a BED6 string will be
    *    returned with strand field being `+`, `-` or `.` and score field being
    *    `0`.
@@ -392,7 +417,8 @@ class ChromRegion {
    * @returns {string}
    */
   regionToBed (includeStrand) {
-    return this.chr + '\t' + this._start + '\t' + this._end + '\t' +
+    return this.chr + '\t' + (this._start - this.constructor.CHROM_BASE) +
+      '\t' + (this._end - this.constructor.CHROM_BASE) + '\t' +
       (this.name ? this.name : '.') +
       ((includeStrand !== false && this._strand !== null)
         ? '\t0\t' + (!this._strand ? '-' : '+') : '')
@@ -418,6 +444,11 @@ class ChromRegion {
         if (newStr === '.' || newStr === '') {
           this._strand = null
         } else {
+          /**
+           * The strand of the region, `null` for unknown or not applicable
+           * @type {boolean|null}
+           * @memberof ChromRegion#
+           */
           this._strand = !(newStr.indexOf('-') >= 0 ||
             newStr.indexOf('0') >= 0)
         }
@@ -444,9 +475,9 @@ class ChromRegion {
   /**
    * Strand information in string, padded with flanking strings.
    *
-   * @param {string} flankbefore - Flanking string before the result,
+   * @param {string} flankbefore Flanking string before the result,
    *    for example: `'('`
-   * @param {string} flankafter - Flanking string after the result,
+   * @param {string} flankafter Flanking string after the result,
    *    for example: `')'`
    * @returns {string}
    */
@@ -487,8 +518,8 @@ class ChromRegion {
   /**
    * Return the length of overlaps between `this` and any given region.
    *
-   * @param {ChromRegion} region - The region to be overlapped with.
-   * @param {boolean} [strandSpecific] - Whether this overlap should be strand-
+   * @param {ChromRegion} region The region to be overlapped with.
+   * @param {boolean} [strandSpecific] Whether this overlap should be strand-
    *    specific. If `true`, regions with different strands will not be
    *    considered as overlapping.
    *
@@ -517,10 +548,10 @@ class ChromRegion {
    * If `this` does not overlap with `region`, return `null` (`this` will not be
    * changed in this case).
    *
-   * @param {ChromRegion} region - The region to be assimilated.
-   * @param {boolean} [strandSpecific] - Whether the assimilation is
+   * @param {ChromRegion} region The region to be assimilated.
+   * @param {boolean} [strandSpecific] Whether the assimilation is
    *    strand-specific.
-   * @param {boolean} [ignoreOverlap] - If `true`, the region to be assimilated
+   * @param {boolean} [ignoreOverlap] If `true`, the region to be assimilated
    *    does not need to be overlapping with `this` (it still needs to be at
    *    the same chromosome, though).
    * @returns {ChromRegion|null}
@@ -546,8 +577,8 @@ class ChromRegion {
    * Return `this` if concatenation happens, `null` otherwise (where `this` will
    * not be changed).
    *
-   * @param {ChromRegion} region - The region to be concatenated
-   * @param {boolean} [strandSpecific] - Whether the concatenation is
+   * @param {ChromRegion} region The region to be concatenated
+   * @param {boolean} [strandSpecific] Whether the concatenation is
    *    strand-specific
    * @returns {ChromRegion|null}
    */
@@ -573,8 +604,8 @@ class ChromRegion {
    * If `this` does not overlap with `region`, return `null` (`this` will not be
    * changed in this case).
    *
-   * @param {ChromRegion} region - The region to be overlapped
-   * @param {boolean} [strandSpecific] - Whether the intersection is
+   * @param {ChromRegion} region The region to be overlapped
+   * @param {boolean} [strandSpecific] Whether the intersection is
    *    strand-specific
    * @returns {ChromRegion|null}
    */
@@ -591,12 +622,12 @@ class ChromRegion {
    * Move `this` by `distance` given. Use a negative value to move to the
    * left-hand side and a positive value to move to the right-hand side.
    *
-   * @param {number} distance - The distance to be moved
-   * @param {boolean} [isProportion] - Whether `distance` is given as an
+   * @param {number} distance The distance to be moved
+   * @param {boolean} [isProportion] Whether `distance` is given as an
    *    absolute bp value or a proportion (of `this.length`).
-   * @param {ChromInfoCollection} [chromInfo] - The collection of chromosomal
+   * @param {ChromInfoCollection} [chromInfo] The collection of chromosomal
    *    information for clipping purposes.
-   * @param {boolean} [relativeToStrand] - Whether the direction of `distance`
+   * @param {boolean} [relativeToStrand] Whether the direction of `distance`
    *    is relative to `this.strand`. Will only be honored if `this.strand`
    *    is not `null`.
    * @returns {ChromRegion}
@@ -639,12 +670,12 @@ class ChromRegion {
    * Get a copy of `this` with shifted location (`this` will not change).
    * See `this.move` for parameter details.
    *
-   * @param {number} distance - The shift distance.
-   * @param {boolean} [isProportion] - Whether `distance` is given as an
+   * @param {number} distance The shift distance.
+   * @param {boolean} [isProportion] Whether `distance` is given as an
    *    absolute bp value or a proportion (of `this.length`).
-   * @param {ChromInfoCollection} [chromInfo] - The collection of chromosomal
+   * @param {ChromInfoCollection} [chromInfo] The collection of chromosomal
    *    information for clipping purposes.
-   * @param {boolean} [relativeToStrand] - Whether the direction of `distance`
+   * @param {boolean} [relativeToStrand] Whether the direction of `distance`
    *    is relative to `this.strand`. Will only be honored if `this.strand`
    *    is not `null`.
    * @returns {ChromRegion}
@@ -657,9 +688,9 @@ class ChromRegion {
   /**
    * Extend / Shrink `this`
    *
-   * @param {number} sizeDiff - The difference to be extended / shrunk. Use
+   * @param {number} sizeDiff The difference to be extended / shrunk. Use
    *    a positive value to extend and a negative value to shrink.
-   * @param {number} [center] - The center point for the extension / shrinkage.
+   * @param {number} [center] The center point for the extension / shrinkage.
    *
    *    Difference in sizes (additional bases after extension / removed bases
    *    after shrinkage) will be allocated proportionally to the length of
@@ -674,11 +705,11 @@ class ChromRegion {
    *
    *    If `center` is outside `this`, it will be moved to the closest point
    *    on `this`.
-   * @param {boolean} [isProportion] -  Whether `sizeDiff` is an absolute bp
+   * @param {boolean} [isProportion]  Whether `sizeDiff` is an absolute bp
    *    value or a proportion of `this.length`.
-   * @param {ChromInfoCollection} [chromInfo] - The collection of chromosomal
+   * @param {ChromInfoCollection} [chromInfo] The collection of chromosomal
    *    information for clipping purposes.
-   * @param {number} [minimumSize] - The minimum size of the resulting
+   * @param {number} [minimumSize] The minimum size of the resulting
    *    `ChromRegion` object.
    * @returns {ChromRegion}
    */
@@ -735,14 +766,14 @@ class ChromRegion {
    * Get an extended / shrunk copy of `this`. `this` will not be changed.
    * See `this.extend` for parameter details.
    *
-   * @param {number} sizeDiff - The difference to be extended / shrunk. Use
+   * @param {number} sizeDiff The difference to be extended / shrunk. Use
    *    a positive value to extend and a negative value to shrink.
-   * @param {number} [center] - The center point for the extension / shrinkage.
-   * @param {boolean} [isProportion] -  Whether `sizeDiff` is an absolute bp
+   * @param {number} [center] The center point for the extension / shrinkage.
+   * @param {boolean} [isProportion]  Whether `sizeDiff` is an absolute bp
    *    value or a proportion of `this.length`.
-   * @param {ChromInfoCollection} [chromInfo] - The collection of chromosomal
+   * @param {ChromInfoCollection} [chromInfo] The collection of chromosomal
    *    information for clipping purposes.
-   * @param {number} [minimumSize] - The minimum size of the resulting
+   * @param {number} [minimumSize] The minimum size of the resulting
    *    `ChromRegion` object.
    * @returns {ChromRegion}
    */
@@ -769,8 +800,8 @@ class ChromRegion {
    * `this.endCoor`) with a collection of `chromInfo`.
    *
    * @static
-   * @param {CoordinateObj} coor - Coordinate object
-   * @param {ChromInfoCollection} [chromInfo] - The collection of chromosomal
+   * @param {CoordinateObj} coor Coordinate object
+   * @param {ChromInfoCollection} [chromInfo] The collection of chromosomal
    *    information.
    * @returns {CoordinateObj}
    */
@@ -796,8 +827,8 @@ class ChromRegion {
    * Validate whether the region is a valid region.
    *
    * @static
-   * @param {ChromRegion|string} chrRegion - The region to be validated
-   * @param {ChromInfoCollection} [chromInfo] - The reference object
+   * @param {ChromRegion|string} chrRegion The region to be validated
+   * @param {ChromInfoCollection} [chromInfo] The reference object
    * @returns {boolean}
    */
   static isValidChromRegion (chrRegion, chromInfo) {
@@ -908,10 +939,10 @@ class ChromRegion {
    * Helper function to get a shortened string if it exceeds a given limit.
    *
    * @static
-   * @param {string} str - String to be shortened
-   * @param {number} limit - Limit of string length
-   * @param {number} prefixLength - Prefix length if shortening happens
-   * @param {number} suffixLength - Suffix length if shortening happens
+   * @param {string} str String to be shortened
+   * @param {number} limit Limit of string length
+   * @param {number} prefixLength Prefix length if shortening happens
+   * @param {number} suffixLength Suffix length if shortening happens
    * @returns {string}
    * @protected
    */
@@ -930,6 +961,14 @@ class ChromRegion {
 ChromRegion._REGION_SHORTNAME_LIMIT = 11
 ChromRegion._REGION_SHORTNAME_PREFIX_LENGTH = 6
 ChromRegion._REGION_SHORTNAME_SUFFIX_LENGTH = 4
-ChromRegion.CHROM_BASE = 0 // may be 0 for UCSC
+
+/**
+ * This is used to determine whether the internal data is stored as a 0-based
+ * value or a 1-based value.
+ * @type {number}
+ * @static
+ * @memberof ChromRegion
+ */
+ChromRegion.CHROM_BASE = 0
 
 module.exports = ChromRegion
