@@ -478,6 +478,7 @@ describe('ChromRegion tests: operations.', function () {
     let chrRegion1 = new ChromRegion('chr2:12345-67890(+)')
     let chrRegion2 = chrRegion1.clone()
     expect(chrRegion1.toString()).to.equal(chrRegion2.toString())
+    expect(chrRegion1).to.eql(chrRegion2)
     expect(ChromRegion.isEqual(chrRegion1, chrRegion2)).to.be.true()
     expect(ChromRegion.compare(chrRegion1, chrRegion2)).to.equal(0)
     expect(chrRegion1.equalTo(chrRegion2)).to.be.true()

@@ -332,7 +332,9 @@ class ChromRegion {
       this._start = parseInt(regionObject.start)
       this._end = parseInt(regionObject.end)
       this.strand = regionObject.strand
-      this.name = regionObject.regionname || regionObject.name || ''
+      if (regionObject.regionname || regionObject.name) {
+        this.name = regionObject.regionname || regionObject.name
+      }
     }
     this._mergeParameters(regionObject)
     this._mergeParameters(additionalParams)
@@ -356,8 +358,9 @@ class ChromRegion {
     this._start = parseInt(tokens[1])
     this._end = parseInt(tokens[2])
     this.strand = (tokens.length < 6) ? this._strand : tokens[5]
-    this.name = (tokens[3] && tokens[3] !== '.')
-      ? tokens[3] : (this.name || '')
+    if (tokens[3] && tokens[3] !== '.') {
+      this.name = tokens[3]
+    }
     return this
   }
 
@@ -478,7 +481,7 @@ class ChromRegion {
    * @readonly
    */
   get shortName () {
-    return this.constructor._shortenString(this.name,
+    return this.name && this.constructor._shortenString(this.name,
       this.constructor._REGION_SHORTNAME_LIMIT,
       this.constructor._REGION_SHORTNAME_PREFIX_LENGTH,
       this.constructor._REGION_SHORTNAME_SUFFIX_LENGTH)
