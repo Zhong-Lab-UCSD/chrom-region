@@ -80,7 +80,7 @@ Data structure for chromosomal region.
 | Param | Type | Description |
 | --- | --- | --- |
 | mainParams | <code>ChromRegion</code> \| <code>string</code> | Main parameters used in the `ChromRegion`.    Either use a `string` like `chr1:12345-56789` or an `object` with `chr`,    `start`, `end` (required), and `strand` (optional) or other essential    properties.    A `ChromRegion` instance can also be used, in which case the behavior    will be similar to a copy constructor. |
-| [chromInfo] | <code>ChromInfoCollection</code> | The collection of chromosomal    information for the reference genome of the region, used for clipping    the region, use falsey values to omit. |
+| [chromInfo] | <code>ChromInfoCollection</code> | The collection of chromosomal    information for the reference genome of the region, used for clipping    the region, use falsy values to omit. |
 | [additionalParams] | <code>Object</code> | Additional parameters to be added to    `this`. |
 | [zeroBased] | <code>boolean</code> | Whether the given chrom region's coordinate    is zero based. __Note:__ Internal storage of the chrom region is always    zero-based. |
 

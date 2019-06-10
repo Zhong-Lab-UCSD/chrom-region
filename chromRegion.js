@@ -85,7 +85,7 @@ class ChromRegion {
    *     a copy constructor (all additional properties will be copied).
    * @param {ChromInfoCollection} [chromInfo] The collection of chromosomal
    *    information for the reference genome of the region, used for clipping
-   *    the region, use falsey values to omit.
+   *    the region, use falsy values to omit.
    * @param {Object} [additionalParams] Additional parameters to be added to
    *    `this`.
    * @param {boolean} [zeroBased] Whether the given chrom region's coordinate
@@ -129,7 +129,9 @@ class ChromRegion {
   _mergeParameters (paramObject) {
     if (typeof paramObject === 'object') {
       for (let key in paramObject) {
-        if (!this.hasOwnProperty(key) && paramObject.hasOwnProperty(key)) {
+        if (key === 'name' || (!this.hasOwnProperty(key) &&
+          paramObject.hasOwnProperty(key)
+        )) {
           try {
             this[key] = paramObject[key]
           } catch (e) {
@@ -787,7 +789,7 @@ class ChromRegion {
 
   /**
    * Whether this region equals to the given region. (Only `chr`, `start`,
-   * `end` and `strand` are compared.)
+   * `end`, `strand` and `name` are compared.)
    *
    * Extensions of this class shall define their own `equalTo` function (or
    * the `static isEqual` function).
@@ -898,11 +900,23 @@ class ChromRegion {
    * *  If `region1.chr === region2.chr` and `region1.start === region2.start`,
    *    but `region1.end` is smaller than `region2.end`, it is considered
    *    smaller, otherwise:
-   * *  If `chr`, `start` and `end` of `region1` and `region2` are equal,
-   *    `region1` is considered equal to `region2`, otherwise `region1` is
-   *    considered larger than `region2`.
+   * *  If `region1.chr === region2.chr`, `region1.start === region2.start`,
+   *    and `region1.end === region2.end`, but `region1.strand` is smaller than
+   *    `region2.strand` (`true` is smaller than `false`, which is smaller than
+   *    `null`), it is considered smaller, otherwise:
+   * *  If `region1.chr === region2.chr`, `region1.start === region2.start`,
+   *    `region1.end === region2.end`, and `region1.strand === region2.strand`,
+   *    but `region1.name` is smaller than `region2.name` (Falsy values are
+   *    equal to each other and larger than any truthy values. Truthy values are
+   *    compared lexicographically), it is considered smaller, otherwise:
+   * *  If `region1.chr === region2.chr` and `region1.start === region2.start`,
+   *    but `region1.end` is smaller than `region2.end`, it is considered
+   *    smaller, otherwise:
+   * *  If `chr`, `start`, `end`, `strand`, and `name` of `region1` and
+   *    `region2` are equal, `region1` is considered equal to `region2`,
+   *    otherwise `region1` is considered larger than `region2`.
    *
-   * __NOTE__: `strand` is not taken into consideration in this case.
+   * __NOTE__: `strand` or `name` is not taken into consideration in this case.
    *
    * @static
    * @param {ChromRegion} region1
@@ -915,14 +929,24 @@ class ChromRegion {
     return (this || ChromRegion)._compareChromNames(region1.chr, region2.chr) ||
       ((region1.start === region2.start)
         ? ((region1.end === region2.end)
-          ? 0 : ((region1.end > region2.end) ? 1 : -1))
+          ? ((region1.strand === region2.strand)
+            ? ((region1.name === region2.name || (
+              !region1.name && !region2.name
+            )) ? 0
+              : ((!region1.name ||
+                (region2.name && region1.name > region2.name)
+              ) ? 1 : -1))
+            : ((region1.strand === null || region2.strand === true) ? 1 : -1))
+          : ((region1.end > region2.end) ? 1 : -1))
         : ((region1.start > region2.start) ? 1 : -1))
   }
 
   /**
-   * Determine whether two regions are equal (`chr`, `start`, `end` and `strand`
-   * are equal), `null` and `undefined` can be passed as parameters, in which
-   * case the function will return `true` if both regions are falsey.
+   * Determine whether two regions are equal (`chr`, `start`, `end`, `strand`
+   * and `name` are equal), `null` and `undefined` can be passed as parameters,
+   * in which case the function will return `true` if both regions are falsy.
+   *
+   * If `name` in both regions are falsy, they are considered as equal.
    *
    * @static
    * @param {ChromRegion} [region1]
@@ -934,7 +958,8 @@ class ChromRegion {
       ? (region1.chr === region2.chr &&
         region1.start === region2.start &&
         region1.end === region2.end &&
-        region1.strand === region2.strand)
+        region1.strand === region2.strand &&
+        ((!region1.name && !region2.name) || region1.name === region2.name))
       : (!!region1 === !!region2)
   }
 

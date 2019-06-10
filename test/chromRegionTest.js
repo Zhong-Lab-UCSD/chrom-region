@@ -475,13 +475,27 @@ describe('ChromRegion tests: operations.', function () {
   })
 
   it('Clone and equality functions.', function () {
-    let chrRegion1 = new ChromRegion('chr2:12345-67890(+)')
+    let chrRegion1 = new ChromRegion('chr2:12345-67890(+)', null,
+      { name: 'name1' })
     let chrRegion2 = chrRegion1.clone()
     expect(chrRegion1.toString()).to.equal(chrRegion2.toString())
     expect(chrRegion1).to.eql(chrRegion2)
     expect(ChromRegion.isEqual(chrRegion1, chrRegion2)).to.be.true()
     expect(ChromRegion.compare(chrRegion1, chrRegion2)).to.equal(0)
     expect(chrRegion1.equalTo(chrRegion2)).to.be.true()
+
+    let chrRegion3 = new ChromRegion(chrRegion1, null, { name: 'name0' })
+    let chrRegion4 = new ChromRegion('chr2:12345-67890', null,
+      { name: 'name0' })
+    let chrRegion5 = new ChromRegion('chr2:12345-67890(+)', null, { name: '' })
+    expect(chrRegion1).not.to.eql(chrRegion3)
+    expect(chrRegion1.toString()).to.equal(chrRegion3.toString())
+    expect(chrRegion1.equalTo(chrRegion3)).to.be.false()
+    expect(ChromRegion.compare(chrRegion1, chrRegion3)).to.equal(1)
+    expect(ChromRegion.compare(chrRegion1, chrRegion4)).to.be.equal(-1)
+    expect(ChromRegion.compare(chrRegion1, chrRegion5)).to.be.equal(-1)
+    expect(ChromRegion.compare(chrRegion5, chrRegion1)).to.be.equal(1)
+
     chrRegion2.start = 12300
     expect(chrRegion2.toString()).to.equal('chr2:12301-67890 (+)')
     expect(chrRegion1.toString()).to.be.not.equal(chrRegion2.toString())
@@ -492,13 +506,18 @@ describe('ChromRegion tests: operations.', function () {
     expect(ChromRegion.isEqual(chrRegion1, chrRegion2)).to.be.false()
     expect(ChromRegion.compare(chrRegion1, chrRegion2)).to.be.lessThan(0)
     expect(ChromRegion.compare(chrRegion2, chrRegion1)).to.be.greaterThan(0)
-    let chrRegion3 = new ChromRegion('chr2:12345-67890(-)')
-    let chrRegion4 = new ChromRegion('chr2:12345-67890')
-    let chrRegion5 = new ChromRegion('chr2:12345-67890(+)')
+
+    chrRegion3 = new ChromRegion('chr2:12345-67890(-)', null,
+      { name: 'name1' })
+    chrRegion4 = new ChromRegion('chr2:12345-67890', null,
+      { name: 'name1' })
+    chrRegion5 = new ChromRegion('chr2:12345-67890(+)', null,
+      { name: 'name1' })
     expect(ChromRegion.isEqual(chrRegion1, chrRegion3)).to.be.false()
-    expect(ChromRegion.compare(chrRegion1, chrRegion3)).to.be.equal(0)
+    expect(ChromRegion.compare(chrRegion1, chrRegion3)).to.be.equal(-1)
     expect(ChromRegion.isEqual(chrRegion1, chrRegion4)).to.be.false()
-    expect(ChromRegion.compare(chrRegion1, chrRegion4)).to.be.equal(0)
+    expect(ChromRegion.compare(chrRegion1, chrRegion4)).to.be.equal(-1)
+    expect(ChromRegion.compare(chrRegion4, chrRegion3)).to.be.equal(1)
     expect(ChromRegion.isEqual(chrRegion1, chrRegion5)).to.be.true()
     expect(ChromRegion.compare(chrRegion1, chrRegion5)).to.be.equal(0)
     expect(ChromRegion.isEqual(chrRegion1, null)).to.be.false()
