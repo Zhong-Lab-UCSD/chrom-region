@@ -5,7 +5,7 @@
  * Copyright 2017-2019 The Regents of the University of California.
  * All Rights Reserved.
  *
- * Created by Xiaoyi Cao
+ * Created by Xiaoyi Cao,
  * Department of Bioengineering
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
