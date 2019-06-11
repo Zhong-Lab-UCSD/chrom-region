@@ -69,6 +69,7 @@ const logger = log4js.getLogger('givengine')
 /**
  * Data structure for chromosomal region.
  * @class
+ * @alias module:ChromRegion
  */
 class ChromRegion {
   /**
