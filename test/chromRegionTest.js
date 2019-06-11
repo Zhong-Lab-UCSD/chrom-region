@@ -353,7 +353,7 @@ describe('ChromRegion tests: creation, I/O, properties.', function () {
 })
 
 describe('ChromRegion tests: operations.', function () {
-  it('Overlaps.', function () {
+  it('Overlap.', function () {
     let chrRegion0 = new ChromRegion('chr1:12345-12344(+)')
     let chrRegion1 = new ChromRegion('chr1:12345-67890(+)')
     let chrRegion2 = new ChromRegion('chr1:67891-167890(+)')
@@ -361,17 +361,17 @@ describe('ChromRegion tests: operations.', function () {
     let chrRegion4 = new ChromRegion('chr1:60000-77890(+)')
     let chrRegion5 = new ChromRegion('chr1:60000-77890(-)')
     let chrRegion6 = new ChromRegion('chr1:60000-77890')
-    expect(chrRegion1.overlaps(chrRegion2)).to.equal(0)
-    expect(chrRegion1.overlaps(chrRegion3)).to.equal(0)
-    expect(chrRegion1.overlaps(chrRegion4)).to.equal(7891)
-    expect(chrRegion1.overlaps(chrRegion4, true)).to.equal(7891)
-    expect(chrRegion1.overlaps(chrRegion0)).to.equal(0)
-    expect(chrRegion0.overlaps(chrRegion2)).to.equal(0)
-    expect(chrRegion4.overlaps(chrRegion1)).to.equal(7891)
-    expect(chrRegion1.overlaps(chrRegion5)).to.equal(7891)
-    expect(chrRegion1.overlaps(chrRegion5, true)).to.equal(0)
-    expect(chrRegion1.overlaps(chrRegion6)).to.equal(7891)
-    expect(chrRegion1.overlaps(chrRegion6, true)).to.equal(7891)
+    expect(chrRegion1.overlap(chrRegion2)).to.equal(0)
+    expect(chrRegion1.overlap(chrRegion3)).to.equal(0)
+    expect(chrRegion1.overlap(chrRegion4)).to.equal(7891)
+    expect(chrRegion1.overlap(chrRegion4, true)).to.equal(7891)
+    expect(chrRegion1.overlap(chrRegion0)).to.equal(0)
+    expect(chrRegion0.overlap(chrRegion2)).to.equal(0)
+    expect(chrRegion4.overlap(chrRegion1)).to.equal(7891)
+    expect(chrRegion1.overlap(chrRegion5)).to.equal(7891)
+    expect(chrRegion1.overlap(chrRegion5, true)).to.equal(0)
+    expect(chrRegion1.overlap(chrRegion6)).to.equal(7891)
+    expect(chrRegion1.overlap(chrRegion6, true)).to.equal(7891)
   })
 
   it('Assimilate.', function () {
@@ -472,6 +472,45 @@ describe('ChromRegion tests: operations.', function () {
       .to.equal('chr1:20001-30000 (-)')
     expect(chrRegion1.intersect(chrRegion6).toString())
       .to.equal('chr1:20001-28000 (-)')
+  })
+
+  it('Minus.', function () {
+    let chrRegion1 = new ChromRegion('chr1:1-100000(-)')
+    let chrRegion2 = new ChromRegion('chr1:2001-40000(-)')
+    let chrRegion3 = new ChromRegion('chr1:5001-50000(-)', null, { name: '3' })
+    let chrRegion4 = new ChromRegion('chr3:10001-70000(-)')
+    let chrRegion5 = new ChromRegion('chr1:20001-30000(+)')
+    let chrRegion6 = new ChromRegion('chr1:15001-28000')
+    expect(chrRegion2.getMinus(chrRegion1, true)
+      .map(region => region.toString())
+    ).to.eql([])
+    expect(chrRegion1.getMinus(chrRegion2, true)
+      .map(region => region.toString())
+    ).to.eql(['chr1:1-2000 (-)', 'chr1:40001-100000 (-)'])
+    expect(chrRegion3.getMinus(chrRegion2, true)
+      .map(region => region.toString())
+    ).to.eql(['chr1:40001-50000 (-)'])
+    expect(chrRegion3.getMinus(chrRegion4, true))
+      .to.eql([chrRegion3])
+    expect(chrRegion3.getMinus(chrRegion4, true))
+      .to.eql([chrRegion3])
+    expect(chrRegion3.getMinus(chrRegion5))
+      .to.eql([
+        new ChromRegion('chr1:5001-20000(-)', null, { name: '3' }),
+        new ChromRegion('chr1:30001-50000(-)', null, { name: '3' })
+      ])
+    expect(chrRegion3.getMinus(chrRegion5, true))
+      .to.eql([chrRegion3])
+    expect(chrRegion3.getMinus(chrRegion6))
+      .to.eql([
+        new ChromRegion('chr1:5001-15000(-)', null, { name: '3' }),
+        new ChromRegion('chr1:28001-50000(-)', null, { name: '3' })
+      ])
+    expect(chrRegion3.getMinus(chrRegion6, true))
+      .to.eql([
+        new ChromRegion('chr1:5001-15000(-)', null, { name: '3' }),
+        new ChromRegion('chr1:28001-50000(-)', null, { name: '3' })
+      ])
   })
 
   it('Clone and equality functions.', function () {

@@ -521,18 +521,20 @@ class ChromRegion {
   }
 
   /**
-   * Return the length of overlaps between `this` and any given region.
+   * Return the length of overlap between `this` and any given region.
    *
    * @param {ChromRegion} region The region to be overlapped with.
    * @param {boolean} [strandSpecific] Whether this overlap should be strand-
    *    specific. If `true`, regions with different strands will not be
    *    considered as overlapping.
    *
-   *    __NOTE:__ Regions without strands will not be affected. Consider
-   *    `strand === null` as a wildcard that matches any strand.
+   * __NOTE:__ Regions without strands will not be affected. Consider
+   * `strand === null` as a wildcard that matches any strand. This applies to
+   * `this.overlap`, `this.assimilate`, `this.concat`, `this.intersect` and
+   * `this.getMinus`
    * @returns {number}
    */
-  overlaps (region, strandSpecific) {
+  overlap (region, strandSpecific) {
     if (this.chr !== region.chr ||
       (strandSpecific &&
         (this._strand !== null && region._strand !== null) &&
@@ -547,7 +549,22 @@ class ChromRegion {
   }
 
   /**
-   * Assimilate `region` if `this` overlaps with it by expanding `this` to
+   * Return the length of overlap between `this` and any given region.
+   * *Deprecated*, please use `this.overlap` instead.
+   *
+   * @param {ChromRegion} region The region to be overlapped with.
+   * @param {boolean} [strandSpecific] Whether this overlap should be strand-
+   *    specific. If `true`, regions with different strands will not be
+   *    considered as overlapping.
+   * @returns {number}
+   * @deprecated
+   */
+  overlaps (region, strandSpecific) {
+    return this.overlap(region, strandSpecific)
+  }
+
+  /**
+   * Assimilate `region` if `this` overlap with it by expanding `this` to
    * cover the entire `region`.
    *
    * If `this` does not overlap with `region`, return `null` (`this` will not be
@@ -562,7 +579,7 @@ class ChromRegion {
    * @returns {ChromRegion|null}
    */
   assimilate (region, strandSpecific, ignoreOverlap) {
-    if ((!ignoreOverlap && !this.overlaps(region, strandSpecific)) ||
+    if ((!ignoreOverlap && !this.overlap(region, strandSpecific)) ||
       this.chr !== region.chr || (strandSpecific &&
         (this._strand !== null && region._strand !== null) &&
         this._strand !== region._strand)
@@ -615,12 +632,45 @@ class ChromRegion {
    * @returns {ChromRegion|null}
    */
   intersect (region, strandSpecific) {
-    if (!this.overlaps(region, strandSpecific)) {
+    if (!this.overlap(region, strandSpecific)) {
       return null
     }
     this._start = Math.round(Math.max(this._start, region._start))
     this._end = Math.round(Math.min(this._end, region._end))
     return this
+  }
+
+  /**
+   * Get the subtraction `region` from `this` by removing overlapping parts.
+   * The resulting one or two `ChromRegion` part will be returned in an array.
+   * `this` will not be changed in this operation.
+   *
+   * If `this` does not overlap with `region` (or `strandSpecific === true` and
+   * the strands are different), return `[this.clone()]`; if `this` is
+   * entirely covered with `region`, return `[]`.
+   *
+   * @param {ChromRegion} region The region to be subtracted from `this`.
+   * @param {boolean} [strandSpecific] Whether the intersection is
+   *    strand-specific.
+   * @returns {Array<ChromRegion>} Subtracted region(s), ordered.
+   */
+  getMinus (region, strandSpecific) {
+    let overlapLength = this.overlap(region, strandSpecific)
+    if (!overlapLength) {
+      return [this]
+    }
+    let result = []
+    if (this.start < region.start) {
+      let front = this.clone()
+      front.end = Math.min(this.end, region.start)
+      result.push(front)
+    }
+    if (this.end > region.end) {
+      let back = this.clone()
+      back.start = Math.max(this.start, region.end)
+      result.push(back)
+    }
+    return result
   }
 
   /**
