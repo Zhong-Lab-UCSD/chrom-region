@@ -1,6 +1,6 @@
 {
   "name": "@givengine/chrom-region",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Chromosomal region class used in GIVE, supporting some basic region operations",
   "main": "chromRegion.js",
   "scripts": {

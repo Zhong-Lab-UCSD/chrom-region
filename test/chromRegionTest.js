@@ -481,6 +481,9 @@ describe('ChromRegion tests: operations.', function () {
     let chrRegion4 = new ChromRegion('chr3:10001-70000(-)')
     let chrRegion5 = new ChromRegion('chr1:20001-30000(+)')
     let chrRegion6 = new ChromRegion('chr1:15001-28000')
+    let chrRegion7 = new ChromRegion('chr1:12001-12000')
+    let chrRegion8 = new ChromRegion('chr2:12001-12000')
+    let chrRegion9 = new ChromRegion('chr1:12001-12000(+)')
     expect(chrRegion2.getMinus(chrRegion1, true)
       .map(region => region.toString())
     ).to.eql([])
@@ -511,6 +514,20 @@ describe('ChromRegion tests: operations.', function () {
         new ChromRegion('chr1:5001-15000(-)', null, { name: '3' }),
         new ChromRegion('chr1:28001-50000(-)', null, { name: '3' })
       ])
+    expect(chrRegion3.getMinus(chrRegion7, true))
+      .to.eql([
+        new ChromRegion('chr1:5001-12000(-)', null, { name: '3' }),
+        new ChromRegion('chr1:12001-50000(-)', null, { name: '3' })
+      ])
+    expect(chrRegion3.getMinus(chrRegion8, true))
+      .to.eql([chrRegion3])
+    expect(chrRegion3.getMinus(chrRegion9))
+      .to.eql([
+        new ChromRegion('chr1:5001-12000(-)', null, { name: '3' }),
+        new ChromRegion('chr1:12001-50000(-)', null, { name: '3' })
+      ])
+    expect(chrRegion3.getMinus(chrRegion9, true))
+      .to.eql([chrRegion3])
   })
 
   it('Clone and equality functions.', function () {

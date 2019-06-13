@@ -650,14 +650,21 @@ class ChromRegion {
    * the strands are different), return `[this.clone()]`; if `this` is
    * entirely covered with `region`, return `[]`.
    *
+   * Regions with a `length` of 0 can be used as "dividers" to divide `this`
+   * into two consecutive parts.
+   *
    * @param {ChromRegion} region The region to be subtracted from `this`.
    * @param {boolean} [strandSpecific] Whether the intersection is
    *    strand-specific.
    * @returns {Array<ChromRegion>} Subtracted region(s), ordered.
    */
   getMinus (region, strandSpecific) {
-    let overlapLength = this.overlap(region, strandSpecific)
-    if (!overlapLength) {
+    if ((region.length && !this.overlap(region, strandSpecific)) ||
+      (!region.length && (region.chr !== this.chr || (
+        strandSpecific && region.strand !== this.strand &&
+        region.strand !== null && this.strand !== null
+      )))
+    ) {
       return [this]
     }
     let result = []
